@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.InputSystem.XR;
 
 // Enemy states
 public enum EnemyState
@@ -22,6 +23,7 @@ public class Enemy : MonoBehaviour
     EnemyState state;
     public GameObject player;
     protected NavMeshAgent agent;
+    public Animator anim;
 
     // Enemy Field of View
     public Transform target;
@@ -31,6 +33,9 @@ public class Enemy : MonoBehaviour
     public LayerMask obstructionMask;
     public LayerMask playerMask;
     public bool canSeePlayer;
+
+    public AudioClip[] FootstepAudioClips;
+    [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
 
     // Start is called before the first frame update
     void Start()
@@ -42,6 +47,9 @@ public class Enemy : MonoBehaviour
         target = player.transform;
         agent = GetComponent<NavMeshAgent>();
 
+        if(GetComponent<Animator>() != null )
+            anim = GetComponent<Animator>();
+
         // Makes the field of view not run all the time to help with performance
         StartCoroutine(FOVRoutine());
     }
@@ -50,12 +58,12 @@ public class Enemy : MonoBehaviour
     {
         // Function for all the enemy actions
         EnemyAI();
-        Debug.Log(canSeePlayer);
-        //Chase();
     }
 
     protected virtual void EnemyAI()
     {
+        anim.SetFloat("Speed", agent.speed);
+
         // Sets the enemy to die
         if (health <= 0)
             state = EnemyState.Dead;
@@ -88,6 +96,9 @@ public class Enemy : MonoBehaviour
                 Chase();
                 break;
 
+            // Haven't done this yet but this will make it so
+            // If the player gets too close to the enemy
+            // the enemy moves away from the player to make space
             case EnemyState.MoveAway:
                 StartEnemy();
                 break;
@@ -145,12 +156,14 @@ public class Enemy : MonoBehaviour
             canSeePlayer = false;
     }
 
+    // Chases the player
     private void Chase()
     {
-        agent.speed = 1;
+        agent.speed = 2;
         agent.SetDestination(target.position);
     }
 
+    // Attack the player
     private void Attack()
     {
         agent.SetDestination(transform.position);
@@ -163,7 +176,7 @@ public class Enemy : MonoBehaviour
     {
         agent.isStopped = true;
         agent.speed = 0;
-
+        anim.SetFloat("Speed", 0);
     }
 
     // Starts the Enemy back up with a given speed
@@ -171,6 +184,19 @@ public class Enemy : MonoBehaviour
     private void StartEnemy()
     {
         agent.isStopped = false;
-        agent.speed = 1;
+        agent.speed = 2;
+        anim.SetFloat("Speed", 2);
+    }
+
+    private void OnFootstep(AnimationEvent animationEvent)
+    {
+        if (animationEvent.animatorClipInfo.weight > 0.5f)
+        {
+            if (FootstepAudioClips.Length > 0)
+            {
+                var index = Random.Range(0, FootstepAudioClips.Length);
+                AudioSource.PlayClipAtPoint(FootstepAudioClips[index], transform.TransformPoint(transform.position), FootstepAudioVolume);
+            }
+        }
     }
 }
