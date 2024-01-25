@@ -40,12 +40,18 @@ public class Enemy : MonoBehaviour
         maxHealth = 100;
         state = EnemyState.Idle;
         target = player.transform;
+        agent = GetComponent<NavMeshAgent>();
+
+        // Makes the field of view not run all the time to help with performance
+        StartCoroutine(FOVRoutine());
     }
 
     void FixedUpdate()
     {
         // Function for all the enemy actions
         EnemyAI();
+        Debug.Log(canSeePlayer);
+        //Chase();
     }
 
     protected virtual void EnemyAI()
@@ -61,27 +67,37 @@ public class Enemy : MonoBehaviour
         {
             state = EnemyState.Idle;
         }
-        else
+
+        if (canSeePlayer && state != EnemyState.Dead)
         {
             state = EnemyState.MoveTowards;
         }
+
+        if (distance <= agent.stoppingDistance && state != EnemyState.Dead)
+            state = EnemyState.Attack;
 
         // Switches between enemy states
         switch (state)
         {
             case EnemyState.Idle:
+                StopEnemy();
                 break;
 
             case EnemyState.MoveTowards:
+                StartEnemy();
+                Chase();
                 break;
 
             case EnemyState.MoveAway:
+                StartEnemy();
                 break;
 
             case EnemyState.Attack:
+                Attack();
                 break;
 
             case EnemyState.Dead:
+                StopEnemy();
                 break;
         }
     }
@@ -131,6 +147,30 @@ public class Enemy : MonoBehaviour
 
     private void Chase()
     {
+        agent.speed = 1;
         agent.SetDestination(target.position);
+    }
+
+    private void Attack()
+    {
+        agent.SetDestination(transform.position);
+        agent.speed = 0;
+    }
+
+    // Stops the Enemy completely 
+    // and sets up the idle animation
+    public void StopEnemy()
+    {
+        agent.isStopped = true;
+        agent.speed = 0;
+
+    }
+
+    // Starts the Enemy back up with a given speed
+    // and sets the animation according to the speed set
+    private void StartEnemy()
+    {
+        agent.isStopped = false;
+        agent.speed = 1;
     }
 }
