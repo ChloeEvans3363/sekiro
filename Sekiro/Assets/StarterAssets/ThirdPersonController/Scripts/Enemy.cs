@@ -114,8 +114,8 @@ public class Enemy : MonoBehaviour
                 break;
 
             case EnemyState.Attack:
-                //Attack();
-                Parry();
+                Attack();
+                //Parry();
                 break;
 
             case EnemyState.Parry:
