@@ -114,7 +114,8 @@ public class Enemy : MonoBehaviour
                 break;
 
             case EnemyState.Attack:
-                Attack();
+                //Attack();
+                Parry();
                 break;
 
             case EnemyState.Parry:
@@ -176,6 +177,8 @@ public class Enemy : MonoBehaviour
         agent.SetDestination(target.position);
     }
 
+    // Okay I am not happy with how this works right now so I am
+    // Going to come back and fix it later
     protected void CheckHit()
     {
         CapsuleCollider hitbox = weapon.GetComponent<CapsuleCollider>();
@@ -227,11 +230,27 @@ public class Enemy : MonoBehaviour
 
     }
 
+    private void Parry()
+    {
+        agent.SetDestination(transform.position);
+        agent.speed = 0;
+
+        transform.LookAt(target);
+
+        Vector3 lookAngle = transform.rotation.eulerAngles;
+        lookAngle.x = 0;
+
+        transform.rotation = Quaternion.Euler(lookAngle);
+
+        anim.SetBool("Parry", true);
+    }
+
     private void ResetAttack()
     {
         alreadyAttacked = false;
         anim.SetBool("Attack", false);
         CancelInvoke(nameof(CheckHit));
+        //Debug.Log("attack finish");
     }
 
     // Stops the Enemy completely 
