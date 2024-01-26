@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem.XR;
@@ -10,6 +11,7 @@ public enum EnemyState
     MoveTowards,
     MoveAway,
     Attack,
+    Parry,
     Idle,
     Dead
 }
@@ -34,6 +36,12 @@ public class Enemy : MonoBehaviour
     public LayerMask playerMask;
     public bool canSeePlayer;
 
+    // Attacking
+    public float timeBetweenAttacks;
+    bool alreadyAttacked;
+    public GameObject weapon;
+
+    // Audio
     public AudioClip[] FootstepAudioClips;
     [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
 
@@ -47,7 +55,9 @@ public class Enemy : MonoBehaviour
         target = player.transform;
         agent = GetComponent<NavMeshAgent>();
 
-        if(GetComponent<Animator>() != null )
+        timeBetweenAttacks = 2.0f;
+
+        if (GetComponent<Animator>() != null )
             anim = GetComponent<Animator>();
 
         // Makes the field of view not run all the time to help with performance
@@ -107,6 +117,9 @@ public class Enemy : MonoBehaviour
                 Attack();
                 break;
 
+            case EnemyState.Parry:
+                break;
+
             case EnemyState.Dead:
                 StopEnemy();
                 break;
@@ -163,11 +176,62 @@ public class Enemy : MonoBehaviour
         agent.SetDestination(target.position);
     }
 
+    protected void CheckHit()
+    {
+        CapsuleCollider hitbox = weapon.GetComponent<CapsuleCollider>();
+
+        Vector3 direction = new Vector3 { [hitbox.direction] = 1 };
+        float offset = hitbox.height / 2 - hitbox.radius;
+        Vector3 weaponStart = weapon.transform.TransformPoint(hitbox.center - direction * offset);
+        Vector3 weaponEnd = weapon.transform.TransformPoint(hitbox.center + direction * offset);
+
+        Collider[] hits = Physics.OverlapCapsule(weaponStart, weaponEnd, hitbox.radius);
+
+        if (hits.Length <= 0)
+            return;
+        foreach (Collider hit in hits)
+        {
+            if (hit.tag == "Player")
+            {
+                Debug.Log("hit");
+                CancelInvoke(nameof(CheckHit));
+            }
+        }
+    }
+
     // Attack the player
     private void Attack()
     {
         agent.SetDestination(transform.position);
         agent.speed = 0;
+
+        transform.LookAt(target);
+
+        Vector3 lookAngle = transform.rotation.eulerAngles;
+        lookAngle.x = 0;
+
+        transform.rotation = Quaternion.Euler(lookAngle);
+
+        if (!alreadyAttacked)
+        {
+            // Attack code
+            anim.SetBool("Attack", true);
+
+            // Checks if the enemy has hit the player
+            InvokeRepeating(nameof(CheckHit), 1.5f, 0.1f);
+
+            // If so then the enemy attack is reset
+            alreadyAttacked = true;
+            Invoke(nameof(ResetAttack), timeBetweenAttacks);
+        }
+
+    }
+
+    private void ResetAttack()
+    {
+        alreadyAttacked = false;
+        anim.SetBool("Attack", false);
+        CancelInvoke(nameof(CheckHit));
     }
 
     // Stops the Enemy completely 
