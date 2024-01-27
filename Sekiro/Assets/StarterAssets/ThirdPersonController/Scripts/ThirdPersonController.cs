@@ -12,8 +12,11 @@ namespace StarterAssets
 #if ENABLE_INPUT_SYSTEM 
     [RequireComponent(typeof(PlayerInput))]
 #endif
+
     public class ThirdPersonController : MonoBehaviour
     {
+        public Player playerScript;
+
         [Header("Player")]
         [Tooltip("Move speed of the character in m/s")]
         public float MoveSpeed = 2.0f;
@@ -154,6 +157,7 @@ namespace StarterAssets
 
         private void Update()
         {
+            if(playerScript.health <= 0 ) { return; }
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();

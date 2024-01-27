@@ -196,7 +196,12 @@ public class Enemy : MonoBehaviour
         {
             if (hit.tag == "Player")
             {
-                Debug.Log("hit");
+                //Debug.Log("hit");
+                if (!player.GetComponent<Player>().CheckGetHit(damage))
+                {
+                    // Player deflected
+                }
+                
                 CancelInvoke(nameof(CheckHit));
             }
         }
