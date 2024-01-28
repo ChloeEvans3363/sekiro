@@ -6,6 +6,15 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
+public enum PlayerState
+{
+    parrying,
+    dodging,
+    blocking,
+    attacking,
+    idle
+}
+
 public class Player : MonoBehaviour
 {
     //General Stats
@@ -21,11 +30,16 @@ public class Player : MonoBehaviour
     public GameObject weapon;
     private float maxAttackCooldown;
     private float attackCooldown;
-    public bool isAttacking;
     private float maxParryCooldown;
     private float parryCooldown;
-    public bool isParrying;
-    public bool isBlocking;
+    public PlayerState state = PlayerState.idle;
+
+    //Dodging
+    public float dodgeDuration = 0.5f;
+    public float maxDodgeCooldown = 1;
+    private float dodgeCooldown = 0;
+    public float dodgeSpeed = 3;
+
 
     //UI
     public Slider healthBarSlider;
@@ -39,7 +53,6 @@ public class Player : MonoBehaviour
         stamina = maxStamina = 100;
         maxAttackCooldown = maxParryCooldown = 1;
         attackCooldown = parryCooldown = 0;
-        isAttacking = isParrying = isBlocking = false;
 
         if (GetComponent<Animator>() != null)
             anim = GetComponent<Animator>();
@@ -55,19 +68,22 @@ public class Player : MonoBehaviour
         UpdateInput();
         UpdateUI();
 
+        //Debug.Log(state);
+
         if (health <= 0) { return; }
 
         attackCooldown -= deltaTime;
         parryCooldown -= deltaTime;
+        dodgeCooldown -= deltaTime;
 
         if(attackCooldown <= 0)
         {
             anim.SetBool("Attack", false);
-            isAttacking = false;
+            if (state == PlayerState.attacking) { state = PlayerState.idle; }
         }
-        else if(isAttacking == true) { CheckHit(); }
+        else if(state == PlayerState.attacking) { CheckHit(); }
 
-        if(parryCooldown <= 0)
+        if(parryCooldown <= 0 && (state == PlayerState.parrying || state == PlayerState.blocking))
         {
             Block();
         }
@@ -77,15 +93,20 @@ public class Player : MonoBehaviour
     //Check for input
     private void UpdateInput()
     {
-        //Left Click
+        //Left Click - Attack
         if (attackCooldown <= 0 && Input.GetMouseButtonDown(0))
         {
             Attack();
         }
-        //Right Click
+        //Right Click - Parry
         if (Input.GetMouseButtonDown(1))
         {
             Parry();
+        }
+        //Left Ctrl - Dodge
+        if (dodgeCooldown <= 0 && Input.GetKey(KeyCode.LeftControl))
+        {
+            Dodge();
         }
     }
 
@@ -93,13 +114,13 @@ public class Player : MonoBehaviour
     {
         attackCooldown = maxAttackCooldown;
         anim.SetBool("Attack", true);
-        isAttacking = true;
+        state = PlayerState.attacking;
     }
 
     private void Parry()
     {
         parryCooldown = maxParryCooldown;
-        isParrying = true;
+        state = PlayerState.parrying;
         anim.SetBool("Parry", true);
     }
 
@@ -108,14 +129,29 @@ public class Player : MonoBehaviour
         //Right click is down
         if (Input.GetMouseButton(1))
         {
-            isBlocking = true;
+            state = PlayerState.blocking;
         }
         else
         {
-            isBlocking = isParrying = false;
+            state = PlayerState.idle;
             anim.SetBool("Parry", false);
         }
 
+    }
+
+    private void Dodge()
+    {
+        state = PlayerState.dodging;
+        dodgeCooldown = maxDodgeCooldown;
+        anim.SetBool("Dodge", true);
+        Invoke(nameof(StopDodge), dodgeDuration);
+    }
+
+    private void StopDodge()
+    {
+        state = PlayerState.idle;
+        dodgeCooldown = maxDodgeCooldown;
+        anim.SetBool("Dodge", false);
     }
 
 
@@ -141,7 +177,7 @@ public class Player : MonoBehaviour
             {
                 Debug.Log("Enemy Hit: "+hit);
                 anim.SetBool("Attack", false);
-                isAttacking = false;
+                state = PlayerState.idle;
                 enemy.health -= damage;
             }
         }
@@ -158,13 +194,16 @@ public class Player : MonoBehaviour
     }
 
     //To be called by enemy when hitting the player
-    public bool CheckGetHit(int damage)
+    public PlayerState CheckGetHit(int damage)
     {
-        if (isBlocking) { health -= damage / 2; return true; }
-        if (isParrying) { return false; }
+        if (state == PlayerState.blocking) { health -= damage / 2; return state; }
+        if (state == PlayerState.parrying || state == PlayerState.dodging) {
+            Debug.Log("Player avoided damage: " + state);
+            return state; 
+        }
         health -= damage;
         //Debug.Log("took " + damage + " damage: " + health + " health remains");
-        return true;
+        return state;
     }
 
 

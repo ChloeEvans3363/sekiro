@@ -197,7 +197,7 @@ public class Enemy : MonoBehaviour
             if (hit.tag == "Player")
             {
                 //Debug.Log("hit");
-                if (!player.GetComponent<Player>().CheckGetHit(damage))
+                if (player.GetComponent<Player>().CheckGetHit(damage) == PlayerState.parrying)
                 {
                     // Player deflected
                 }
