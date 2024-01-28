@@ -12,6 +12,7 @@ public enum PlayerState
     dodging,
     blocking,
     attacking,
+    stunned,
     idle
 }
 
@@ -21,8 +22,12 @@ public class Player : MonoBehaviour
     public int health;
     public int damage;
     protected int maxHealth;
-    public int stamina;
-    protected int maxStamina;
+    public float posture = 100;
+    private float maxPosture = 100;
+    private float maxPostureCooldown = 3f;
+    private float postureCooldown = 0;
+    //public int stamina;
+    //protected int maxStamina;
 
     //Attacking
     public Enemy enemy;
@@ -38,19 +43,25 @@ public class Player : MonoBehaviour
     public float dodgeDuration = 0.5f;
     public float maxDodgeCooldown = 1;
     private float dodgeCooldown = 0;
-    public float dodgeSpeed = 3;
+    //public float dodgeSpeed = 3;
+
+    //Stun Duration
+    public float maxStunDuration = 3;
+    public float stunDuration = 0;
 
 
     //UI
     public Slider healthBarSlider;
+    public Slider postureBarSlider;
+    public Slider enemyPostureBarSlider;
     public Image uiImage;
 
 
     // Start is called before the first frame update
     void Start()
     {
-        health = maxHealth = 100;
-        stamina = maxStamina = 100;
+        health = maxHealth = 1000;
+        //stamina = maxStamina = 100;
         maxAttackCooldown = maxParryCooldown = 1;
         attackCooldown = parryCooldown = 0;
 
@@ -59,6 +70,9 @@ public class Player : MonoBehaviour
 
         //UI
         healthBarSlider.maxValue = maxHealth;
+        postureBarSlider.maxValue = maxPosture;
+        if(enemyPostureBarSlider && enemy)
+        enemyPostureBarSlider.maxValue = enemy.maxPosture;
     }
 
     // Update is called once per frame
@@ -71,10 +85,24 @@ public class Player : MonoBehaviour
         //Debug.Log(state);
 
         if (health <= 0) { return; }
+        if (stunDuration > 0)
+        {
+            //Debug.Log("Stunned!");
+            state = PlayerState.stunned;
+            stunDuration -= deltaTime;
+            if (stunDuration <= 0)
+            {
+                anim.SetBool("Dodge", false);
+                state = PlayerState.idle;
+                posture = maxPosture / 1.5f;
+            }
+            return;
+        }
 
         attackCooldown -= deltaTime;
         parryCooldown -= deltaTime;
         dodgeCooldown -= deltaTime;
+        postureCooldown -= deltaTime;
 
         if(attackCooldown <= 0)
         {
@@ -86,6 +114,11 @@ public class Player : MonoBehaviour
         if(parryCooldown <= 0 && (state == PlayerState.parrying || state == PlayerState.blocking))
         {
             Block();
+        }
+
+        if (postureCooldown <= 0 && posture < maxPosture && posture > 0)
+        {
+            posture += deltaTime*2;
         }
 
     }
@@ -141,6 +174,7 @@ public class Player : MonoBehaviour
 
     private void Dodge()
     {
+        postureCooldown = maxPostureCooldown;
         state = PlayerState.dodging;
         dodgeCooldown = maxDodgeCooldown;
         anim.SetBool("Dodge", true);
@@ -179,6 +213,7 @@ public class Player : MonoBehaviour
                 anim.SetBool("Attack", false);
                 state = PlayerState.idle;
                 enemy.health -= damage;
+                enemy.posture -= damage;
             }
         }
     }
@@ -191,17 +226,38 @@ public class Player : MonoBehaviour
             healthBarSlider.value = 0;
             uiImage.color = new Color(79f/256f, 79f/256f, 79f/256f, 190f/256f);
         }
+        if(postureBarSlider)
+        postureBarSlider.value = posture;
+        if(enemyPostureBarSlider && enemy)
+        enemyPostureBarSlider.value = enemy.posture;
     }
 
     //To be called by enemy when hitting the player
     public PlayerState CheckGetHit(int damage)
     {
-        if (state == PlayerState.blocking) { health -= damage / 2; return state; }
-        if (state == PlayerState.parrying || state == PlayerState.dodging) {
-            Debug.Log("Player avoided damage: " + state);
-            return state; 
+        switch (state)
+        {
+            case PlayerState.parrying:
+            case PlayerState.dodging:
+                Debug.Log("Player avoided damage: " + state);
+                break;
+            case PlayerState.blocking:
+                health -= damage / 2;
+                posture -= damage;
+                break;
+            case PlayerState.attacking:
+            case PlayerState.idle:
+                health -= damage;
+                posture -= (float)damage * 1.5f;
+                break;
+            case PlayerState.stunned:
+                health -= damage;
+                break;
+            default:
+                break;
         }
-        health -= damage;
+        postureCooldown = maxPostureCooldown;
+        if(posture <= 0 && state != PlayerState.stunned) { stunDuration = maxStunDuration; }
         //Debug.Log("took " + damage + " damage: " + health + " health remains");
         return state;
     }

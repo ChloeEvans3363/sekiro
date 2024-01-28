@@ -157,7 +157,7 @@ namespace StarterAssets
 
         private void Update()
         {
-            if(playerScript.health <= 0 ) { return; }
+            if(playerScript.health <= 0 || playerScript.stunDuration > 0) { return; }
             _hasAnimator = TryGetComponent(out _animator);
 
             JumpAndGravity();

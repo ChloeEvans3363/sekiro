@@ -22,6 +22,8 @@ public class Enemy : MonoBehaviour
     public int health;
     public int damage;
     protected int maxHealth;
+    public float posture;
+    public float maxPosture;
     EnemyState state;
     public GameObject player;
     protected NavMeshAgent agent;
@@ -51,6 +53,7 @@ public class Enemy : MonoBehaviour
         health = 100;
         damage = 10;
         maxHealth = 100;
+        posture = maxPosture = 100;
         state = EnemyState.Idle;
         target = player.transform;
         agent = GetComponent<NavMeshAgent>();
