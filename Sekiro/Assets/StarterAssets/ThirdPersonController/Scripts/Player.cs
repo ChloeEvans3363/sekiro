@@ -249,9 +249,11 @@ public class Player : MonoBehaviour
             case PlayerState.idle:
                 health -= damage;
                 posture -= (float)damage * 1.5f;
+                anim.Play("Damage");
                 break;
             case PlayerState.stunned:
                 health -= damage;
+                anim.Play("Damage");
                 break;
             default:
                 break;

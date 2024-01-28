@@ -234,6 +234,7 @@ public class Enemy : MonoBehaviour
             // If so then the enemy attack is reset
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
+            //player.GetComponent<Player>().anim.SetBool("Damage", false);
         }
 
     }
