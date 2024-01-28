@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.InputSystem.XR;
@@ -58,7 +59,7 @@ public class Enemy : MonoBehaviour
         target = player.transform;
         agent = GetComponent<NavMeshAgent>();
 
-        timeBetweenAttacks = 2.0f;
+        timeBetweenAttacks = 1.3f;
 
         if (GetComponent<Animator>() != null )
             anim = GetComponent<Animator>();
@@ -75,6 +76,7 @@ public class Enemy : MonoBehaviour
 
     protected virtual void EnemyAI()
     {
+        //Debug.Log(state);
         anim.SetFloat("Speed", agent.speed);
 
         // Sets the enemy to die
@@ -89,7 +91,7 @@ public class Enemy : MonoBehaviour
             state = EnemyState.Idle;
         }
 
-        if (canSeePlayer && state != EnemyState.Dead)
+        if (canSeePlayer && state != EnemyState.Dead && state != EnemyState.Attack)
         {
             state = EnemyState.MoveTowards;
         }
@@ -259,7 +261,13 @@ public class Enemy : MonoBehaviour
         alreadyAttacked = false;
         anim.SetBool("Attack", false);
         CancelInvoke(nameof(CheckHit));
-        //Debug.Log("attack finish");
+
+        float distance = Vector3.Distance(target.position, transform.position);
+        if(distance > agent.stoppingDistance)
+        {
+            state = EnemyState.MoveTowards;
+            //Debug.Log("far");
+        }
     }
 
     // Stops the Enemy completely 
