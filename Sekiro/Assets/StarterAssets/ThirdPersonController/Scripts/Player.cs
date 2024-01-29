@@ -207,7 +207,7 @@ public class Player : MonoBehaviour
         // Enemy doesn't have a collider, only the sword does
         foreach (Collider hit in hits)
         {
-            if (hit.tag == "Player")
+            if (hit.tag == "Enemy")
             {
                 Debug.Log("Enemy Hit: "+hit);
                 anim.SetBool("Attack", false);
