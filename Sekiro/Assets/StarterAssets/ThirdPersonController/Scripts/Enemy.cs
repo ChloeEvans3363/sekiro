@@ -231,7 +231,7 @@ public class Enemy : MonoBehaviour
             anim.SetBool("Attack", true);
 
             // Checks if the enemy has hit the player
-            InvokeRepeating(nameof(CheckHit), 1.5f, 0.1f);
+            InvokeRepeating(nameof(CheckHit), timeBetweenAttacks, timeBetweenAttacks);
 
             // If so then the enemy attack is reset
             alreadyAttacked = true;
