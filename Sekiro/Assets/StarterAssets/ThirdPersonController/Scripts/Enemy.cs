@@ -59,7 +59,7 @@ public class Enemy : MonoBehaviour
         target = player.transform;
         agent = GetComponent<NavMeshAgent>();
 
-        timeBetweenAttacks = 1.3f;
+        timeBetweenAttacks = 1.7f;
 
         if (GetComponent<Animator>() != null )
             anim = GetComponent<Animator>();
@@ -231,7 +231,7 @@ public class Enemy : MonoBehaviour
             anim.SetBool("Attack", true);
 
             // Checks if the enemy has hit the player
-            InvokeRepeating(nameof(CheckHit), timeBetweenAttacks, timeBetweenAttacks);
+            InvokeRepeating(nameof(CheckHit), 0.7f, 0.1f);
 
             // If so then the enemy attack is reset
             alreadyAttacked = true;
