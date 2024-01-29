@@ -14,6 +14,7 @@ public enum EnemyState
     Attack,
     Parry,
     Idle,
+    Damage,
     Dead
 }
 
@@ -25,7 +26,7 @@ public class Enemy : MonoBehaviour
     protected int maxHealth;
     public float posture;
     public float maxPosture;
-    EnemyState state;
+    public EnemyState state;
     public GameObject player;
     protected NavMeshAgent agent;
     public Animator anim;
@@ -124,6 +125,11 @@ public class Enemy : MonoBehaviour
                 break;
 
             case EnemyState.Parry:
+                break;
+            case EnemyState.Damage:
+                anim.Play("Damage");
+                Debug.Log("damage");
+                //state = EnemyState.Idle;
                 break;
 
             case EnemyState.Dead:
@@ -236,7 +242,6 @@ public class Enemy : MonoBehaviour
             // If so then the enemy attack is reset
             alreadyAttacked = true;
             Invoke(nameof(ResetAttack), timeBetweenAttacks);
-            //player.GetComponent<Player>().anim.SetBool("Damage", false);
         }
 
     }

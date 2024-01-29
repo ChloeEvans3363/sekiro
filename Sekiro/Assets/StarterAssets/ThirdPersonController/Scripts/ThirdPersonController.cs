@@ -287,7 +287,7 @@ namespace StarterAssets
 
         private void JumpAndGravity()
         {
-            if (Grounded && gameObject.GetComponent<Player>().state == PlayerState.idle)
+            if (Grounded)
             {
                 // reset the fall timeout timer
                 _fallTimeoutDelta = FallTimeout;

@@ -214,6 +214,7 @@ public class Player : MonoBehaviour
                 state = PlayerState.idle;
                 enemy.health -= damage;
                 enemy.posture -= damage;
+                enemy.state = EnemyState.Damage;
             }
         }
     }
