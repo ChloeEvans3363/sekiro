@@ -215,6 +215,7 @@ public class Player : MonoBehaviour
                 enemy.health -= damage;
                 enemy.posture -= damage;
                 hit.gameObject.GetComponent<Enemy>().anim.Play("Damage");
+                //hit.gameObject.GetComponent<Enemy>().CancelInvoke(nameof(CheckHit));
             }
         }
     }

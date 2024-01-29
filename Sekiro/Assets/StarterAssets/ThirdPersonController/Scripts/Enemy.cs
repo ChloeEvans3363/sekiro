@@ -14,7 +14,6 @@ public enum EnemyState
     Attack,
     Parry,
     Idle,
-    Damage,
     Dead
 }
 
@@ -122,10 +121,6 @@ public class Enemy : MonoBehaviour
             case EnemyState.Attack:
                 Attack();
                 //Parry();
-                break;
-
-            case EnemyState.Damage:
-                Debug.Log("damage");
                 break;
 
             case EnemyState.Parry:
