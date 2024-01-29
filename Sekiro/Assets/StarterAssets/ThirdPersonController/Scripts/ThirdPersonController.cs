@@ -265,7 +265,7 @@ namespace StarterAssets
                     RotationSmoothTime);
 
                 // rotate to face input direction relative to camera position
-                if (gameObject.GetComponent<Player>().state != PlayerState.attacking)
+                if (gameObject.GetComponent<Player>().state == PlayerState.idle)
                     transform.rotation = Quaternion.Euler(0.0f, rotation, 0.0f);
             }
 
@@ -273,7 +273,7 @@ namespace StarterAssets
             Vector3 targetDirection = Quaternion.Euler(0.0f, _targetRotation, 0.0f) * Vector3.forward;
 
             // move the player
-            if(gameObject.GetComponent<Player>().state != PlayerState.attacking)
+            if(gameObject.GetComponent<Player>().state == PlayerState.idle)
                 _controller.Move(targetDirection.normalized * (_speed * Time.deltaTime) +
                              new Vector3(0.0f, _verticalVelocity, 0.0f) * Time.deltaTime);
 
@@ -287,7 +287,7 @@ namespace StarterAssets
 
         private void JumpAndGravity()
         {
-            if (Grounded)
+            if (Grounded && gameObject.GetComponent<Player>().state == PlayerState.idle)
             {
                 // reset the fall timeout timer
                 _fallTimeoutDelta = FallTimeout;
