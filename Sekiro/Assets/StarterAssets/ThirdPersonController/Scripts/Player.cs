@@ -214,7 +214,7 @@ public class Player : MonoBehaviour
                 state = PlayerState.idle;
                 enemy.health -= damage;
                 enemy.posture -= damage;
-                enemy.state = EnemyState.Damage;
+                hit.gameObject.GetComponent<Enemy>().anim.Play("Damage");
             }
         }
     }

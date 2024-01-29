@@ -124,12 +124,11 @@ public class Enemy : MonoBehaviour
                 //Parry();
                 break;
 
-            case EnemyState.Parry:
-                break;
             case EnemyState.Damage:
-                anim.Play("Damage");
                 Debug.Log("damage");
-                //state = EnemyState.Idle;
+                break;
+
+            case EnemyState.Parry:
                 break;
 
             case EnemyState.Dead:
